@@ -2,26 +2,673 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PostaMoja</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Postamoja</title>
+
 <style>
-  body { font-family: sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #222; }
-  h1, h2 { color: #111; }
-  footer { margin-top: 40px; font-size: 0.9em; color: #666; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #f5f6fa;
+  color: #171717;
+}
+
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 230px;
+  background: #111827;
+  color: white;
+  padding: 25px 15px;
+  position: fixed;
+  height: 100vh;
+}
+
+.logo {
+  font-size: 25px;
+  font-weight: bold;
+  margin-bottom: 35px;
+}
+
+.logo span {
+  font-size: 11px;
+  display: block;
+  opacity: .6;
+  margin-top: 4px;
+}
+
+.nav button {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #d1d5db;
+  padding: 13px 12px;
+  text-align: left;
+  border-radius: 8px;
+  margin-bottom: 5px;
+  cursor: pointer;
+}
+
+.nav button:hover,
+.nav button.active {
+  background: #374151;
+  color: white;
+}
+
+/* MAIN */
+.main {
+  margin-left: 230px;
+  width: calc(100% - 230px);
+  padding: 30px;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.top h1 {
+  font-size: 28px;
+}
+
+.upload-btn,
+.primary {
+  background: #111827;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* STATS */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+/* CONTENT */
+.section-title {
+  margin: 25px 0 15px;
+}
+
+.upload-box {
+  border: 2px dashed #cbd5e1;
+  padding: 45px 20px;
+  text-align: center;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+}
+
+.upload-box:hover {
+  background: #f8fafc;
+}
+
+.platforms {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.platform {
+  background: white;
+  padding: 18px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.platform.selected {
+  border-color: #111827;
+}
+
+.platform small {
+  display: block;
+  margin-top: 5px;
+  color: #64748b;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 7px;
+  margin-bottom: 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+textarea {
+  height: 100px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* POSTS */
+.post {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: white;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.status {
+  background: #fef3c7;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+/* CALENDAR */
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.day {
+  background: white;
+  min-height: 80px;
+  padding: 10px;
+  border-radius: 7px;
+}
+
+.day strong {
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* MOBILE */
+@media(max-width: 800px) {
+
+  .sidebar {
+    width: 70px;
+    padding: 15px 8px;
+  }
+
+  .logo {
+    font-size: 0;
+    text-align: center;
+  }
+
+  .logo:first-letter {
+    font-size: 25px;
+  }
+
+  .logo span {
+    display: none;
+  }
+
+  .nav button {
+    font-size: 0;
+    text-align: center;
+  }
+
+  .nav button:first-letter {
+    font-size: 20px;
+  }
+
+  .main {
+    margin-left: 70px;
+    width: calc(100% - 70px);
+    padding: 18px;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .platforms {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 </style>
 </head>
+
 <body>
-  <h1>PostaMoja</h1>
-  <p>PostaMoja is a personal automation tool built by Mumchii Production to schedule and auto-post video content to social media platforms on behalf of its own account holder.</p>
 
-  <h2>Privacy Policy</h2>
-  <p>PostaMoja only accesses the social media accounts explicitly connected by its owner for the sole purpose of uploading scheduled video content. No data is collected from or shared with any third party. No personal data belonging to end users, other than the account owner's own credentials required for posting, is stored or processed.</p>
+<div class="app">
 
-  <h2>Terms of Service</h2>
-  <p>PostaMoja is used solely by its owner (Mumchii Production / Elijah Ngugi) to automate the posting of their own original video content to their own social media accounts. It is not offered as a public service to third parties at this time.</p>
+<aside class="sidebar">
 
-  <footer>
-    <p>Contact: elijahkuria358@gmail.com</p>
-  </footer>
+<div class="logo">
+POSTAMOJA
+<span>Create once. Schedule everywhere.</span>
+</div>
+
+<div class="nav">
+
+<button onclick="showPage('dashboard')">🏠 Dashboard</button>
+<button onclick="showPage('upload')">📤 Content</button>
+<button onclick="showPage('calendar')">📅 Calendar</button>
+<button onclick="showPage('analytics')">📊 Analytics</button>
+<button onclick="showPage('accounts')">🔗 Accounts</button>
+<button onclick="showPage('settings')">⚙️ Settings</button>
+
+</div>
+
+</aside>
+
+
+<main class="main">
+
+<!-- DASHBOARD -->
+
+<section id="dashboard">
+
+<div class="top">
+
+<div>
+<h1>Good afternoon 👋</h1>
+<p>Manage your content from one place.</p>
+</div>
+
+<button class="upload-btn" onclick="showPage('upload')">
++ Upload Content
+</button>
+
+</div>
+
+
+<div class="stats">
+
+<div class="card">
+Videos
+<div class="stat-number">24</div>
+</div>
+
+<div class="card">
+Scheduled
+<div class="stat-number">12</div>
+</div>
+
+<div class="card">
+Published
+<div class="stat-number">48</div>
+</div>
+
+<div class="card">
+Failed
+<div class="stat-number">2</div>
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>⚡ Auto-Schedule</h2>
+
+<p style="margin:10px 0 20px">
+Upload multiple videos and let Postamoja create your schedule automatically.
+</p>
+
+<button class="primary" onclick="showPage('upload')">
+Create Schedule
+</button>
+
+</div>
+
+
+<h2 class="section-title">Upcoming Posts</h2>
+
+<div class="post">
+<div>🎬 Comedy Skit 01<br>
+<small>YouTube • Today 7:00 PM</small></div>
+<span class="status">Scheduled</span>
+</div>
+
+<div class="post">
+<div>🎬 Comedy Skit 02<br>
+<small>TikTok • Tomorrow 1:00 PM</small></div>
+<span class="status">Scheduled</span>
+</div>
+
+</section>
+
+
+<!-- UPLOAD -->
+
+<section id="upload" style="display:none">
+
+<h1>Upload Content</h1>
+<p style="margin:8px 0 25px">
+Create a post for your connected platforms.
+</p>
+
+
+<div class="upload-box" onclick="document.getElementById('video').click()">
+
+<h2>☁️ Upload Video</h2>
+
+<p>Tap here to select your video</p>
+
+<input id="video"
+type="file"
+accept="video/*"
+style="display:none"
+onchange="videoSelected()">
+
+</div>
+
+
+<h2 class="section-title">Platforms</h2>
+
+<div class="platforms">
+
+<div class="platform selected" onclick="togglePlatform(this)">
+▶️ YouTube
+<small>Connected</small>
+</div>
+
+<div class="platform" onclick="togglePlatform(this)">
+🎵 TikTok
+<small>Connect account</small>
+</div>
+
+<div class="platform" onclick="togglePlatform(this)">
+📘 Facebook
+<small>Connect account</small>
+</div>
+
+<div class="platform" onclick="togglePlatform(this)">
+📸 Instagram
+<small>Connect account</small>
+</div>
+
+<div class="platform" onclick="togglePlatform(this)">
+𝕏 X
+<small>Connect account</small>
+</div>
+
+<div class="platform" onclick="togglePlatform(this)">
+🧵 Threads
+<small>Connect account</small>
+</div>
+
+</div>
+
+
+<h2 class="section-title">Post Details</h2>
+
+<div class="card">
+
+<label>Video Title</label>
+
+<input
+type="text"
+id="title"
+placeholder="Enter your video title">
+
+
+<label>Caption</label>
+
+<textarea
+id="caption"
+placeholder="Write your caption..."></textarea>
+
+
+<label>Hashtags</label>
+
+<input
+type="text"
+id="hashtags"
+placeholder="#comedy #kenya #content">
+
+
+<label>Date</label>
+
+<input type="date" id="date">
+
+
+<label>Time</label>
+
+<input type="time" id="time">
+
+
+<div class="actions">
+
+<button class="primary"
+onclick="schedulePost()">
+🚀 Schedule Post
+</button>
+
+<button class="primary"
+onclick="autoSchedule()">
+⚡ Auto-Schedule
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- CALENDAR -->
+
+<section id="calendar" style="display:none">
+
+<h1>Content Calendar</h1>
+
+<p style="margin:8px 0 25px">
+Your scheduled content.
+</p>
+
+<div class="calendar">
+
+<div class="day"><strong>MON</strong>🎬 2 Posts</div>
+<div class="day"><strong>TUE</strong>🎬 2 Posts</div>
+<div class="day"><strong>WED</strong>🎬 2 Posts</div>
+<div class="day"><strong>THU</strong>🎬 2 Posts</div>
+<div class="day"><strong>FRI</strong>🎬 2 Posts</div>
+<div class="day"><strong>SAT</strong>🎬 1 Post</div>
+<div class="day"><strong>SUN</strong>🎬 1 Post</div>
+
+</div>
+
+</section>
+
+
+<!-- ANALYTICS -->
+
+<section id="analytics" style="display:none">
+
+<h1>Analytics</h1>
+
+<div class="stats">
+
+<div class="card">
+Total Views
+<div class="stat-number">12.4K</div>
+</div>
+
+<div class="card">
+Posts
+<div class="stat-number">48</div>
+</div>
+
+<div class="card">
+Engagement
+<div class="stat-number">8.2%</div>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ACCOUNTS -->
+
+<section id="accounts" style="display:none">
+
+<h1>Connected Accounts</h1>
+
+<div class="card">
+
+<p>▶️ YouTube — 🟢 Connected</p>
+<hr><br>
+
+<p>🎵 TikTok — ⚪ Connect</p>
+<hr><br>
+
+<p>📘 Facebook — ⚪ Connect</p>
+<hr><br>
+
+<p>📸 Instagram — ⚪ Connect</p>
+<hr><br>
+
+<p>𝕏 X — ⚪ Connect</p>
+<hr><br>
+
+<p>🧵 Threads — ⚪ Connect</p>
+
+</div>
+
+</section>
+
+
+<!-- SETTINGS -->
+
+<section id="settings" style="display:none">
+
+<h1>Settings</h1>
+
+<div class="card">
+
+<label>Profile Name</label>
+<input value="Postamoja Creator">
+
+<label>Default Posts Per Day</label>
+
+<select>
+<option>1 post</option>
+<option selected>2 posts</option>
+<option>3 posts</option>
+<option>5 posts</option>
+<option>7 posts</option>
+</select>
+
+<button class="primary">
+Save Settings
+</button>
+
+</div>
+
+</section>
+
+</main>
+
+</div>
+
+
+<script>
+
+function showPage(page){
+
+const pages=[
+'dashboard',
+'upload',
+'calendar',
+'analytics',
+'accounts',
+'settings'
+];
+
+pages.forEach(function(p){
+
+document.getElementById(p).style.display =
+(p === page) ? 'block' : 'none';
+
+});
+
+}
+
+
+function togglePlatform(element){
+
+element.classList.toggle('selected');
+
+}
+
+
+function videoSelected(){
+
+const file =
+document.getElementById('video').files[0];
+
+if(file){
+
+alert("Video selected: " + file.name);
+
+}
+
+}
+
+
+function schedulePost(){
+
+const title =
+document.getElementById('title').value;
+
+if(!title){
+
+alert("Please enter a video title.");
+
+return;
+
+}
+
+alert("🎉 Post scheduled successfully!");
+
+}
+
+
+function autoSchedule(){
+
+alert(
+"⚡ Auto-Schedule created!\n\n" +
+"Your videos will be distributed according to your selected schedule."
+);
+
+}
+
+</script>
+
 </body>
 </html>
