@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0E5A3A"><title>PostaMoja</title>
+<style>
+:root{--bg:#F2F5F0;--card:#fff;--ink:#12211A;--mute:#5E6E65;--line:#DCE4DD;--g:#0E5A3A;--a:#F2A900;--on:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#0F1913;--card:#182820;--ink:#EAF2EC;--mute:#98AA9F;--line:#27392F;--g:#3DBB80;--on:#08150e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,sans-serif;font-size:16px;padding-top:env(safe-area-inset-top,0)}
+.app{max-width:480px;margin:0 auto;padding:20px 18px 100px}
+.s{display:none}.s.on{display:block}
+h1{font-size:30px;margin:6px 0 4px}h2{font-size:22px;margin:6px 0 14px}h3{font-size:14px;margin:16px 0 6px}
+p{color:var(--mute);margin:0 0 12px}
+.btn{display:block;width:100%;padding:15px;border:0;border-radius:14px;background:var(--g);color:var(--on);font:600 16px system-ui;margin-top:14px}
+.btn.alt{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.big{padding:20px;font-size:18px;background:var(--a);color:#1b1300}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+.stat b{display:block;font-size:26px}.stat span{color:var(--mute);font-size:13px}
+input,textarea{width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
+.item{display:flex;gap:10px;align-items:center;justify-content:space-between}.item small{display:block;color:var(--mute)}
+.pill{font-size:12px;padding:4px 10px;border-radius:99px;background:color-mix(in srgb,var(--a) 30%,transparent);white-space:nowrap}
+.pill.ok{background:color-mix(in srgb,var(--g) 25%,transparent)}
+#msg{margin-top:12px;font-size:14px;white-space:pre-wrap}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0)}
+nav div{display:flex;max-width:480px;margin:0 auto}
+nav button{flex:1;background:none;border:0;padding:14px 4px;color:var(--mute);font:600 12px system-ui}
+nav button.on{color:var(--g)}
+</style></head><body><div class="app">
+
+<section class="s on" id="home">
+<p style="margin:0" id="greet">Hello</p><h1>PostaMoja</h1><p>Create once. Schedule everywhere.</p>
+<button class="btn big" data-go="add">＋ Upload content</button>
+<div class="row" style="margin-top:14px">
+<div class="card stat"><b id="n1">–</b><span>Videos</span></div>
+<div class="card stat"><b id="n2">–</b><span>Scheduled</span></div>
+<div class="card stat"><b id="n3">–</b><span>Published</span></div></div>
+<h3>Upcoming posts</h3><div id="up"></div>
+</section>
+
+<section class="s" id="add">
+<h2>New post</h2>
+<h3>Video (up to about 25 MB)</h3><input type="file" id="vf" accept="video/*">
+<h3>Title</h3><input id="ti" placeholder="Enter title...">
+<h3>Caption</h3><textarea id="de" rows="3" placeholder="Write your caption..."></textarea>
+<h3>Hashtags</h3><input id="tg" placeholder="comedy, kenya, content">
+<h3>Thumbnail (optional)</h3><input type="file" id="tf" accept="image/*">
+<h3>Post date</h3><input type="date" id="dt">
+<button class="btn" id="go">Add to queue</button><div id="msg"></div>
+</section>
+
+<section class="s" id="queue"><h2>Scheduled posts</h2><div id="ql"></div></section>
+
+<section class="s" id="set">
+<h2>Settings</h2>
+<div class="card item"><b>YouTube</b><span class="pill ok">Connected</span></div>
+<h3>GitHub repo</h3><input id="rp" value="elijahkuria358-byte/Postamoja-app">
+<h3>GitHub access token</h3><input id="tk" type="password" placeholder="Paste token once">
+<p style="margin-top:8px">Saved only in this phone's browser.</p>
+<button class="btn" id="sv">Save settings</button><div id="msg2"></div>
+</section>
+</div>
+<nav><div>
+<button data-go="home">Home</button><button data-go="add">Add</button><button data-go="queue">Queue</button><button data-go="set">Settings</button></div></nav>
+<script>
+var $=function(i){return document.getElementById(i)},Q=[];
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k)||'';localStorage.setItem(k,v)}catch(e){return ''}}
+function go(id){document.querySelectorAll('.s').forEach(function(s){s.classList.toggle('on',s.id===id)});
+document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('on',b.dataset.go===id)});
+if(id==='home'||id==='queue')load()}
+document.addEventListener('click',function(e){var t=e.target.closest('[data-go]');if(t)go(t.dataset.go)});
+var h=new Date().getHours();$('greet').textContent=h<12?'Good morning 👋':h<17?'Good afternoon 👋':'Good evening 👋';
+$('dt').value=new Date().toISOString().slice(0,10);
+if(ls('repo'))$('rp').value=ls('repo');
+$('sv').onclick=function(){ls('repo',$('rp').value.trim());ls('tok',$('tk').value.trim()||ls('tok'));$('msg2').textContent='Saved.';$('tk').value=''};
+function api(path,opt){opt=opt||{};opt.headers={'Authorization':'Bearer '+ls('tok'),'Accept':'application/vnd.github+json'};
+return fetch('https://api.github.com/repos/'+(ls('repo')||$('rp').value)+'/contents/'+path,opt).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.message||r.status);return j})})}
+function dec(b){return decodeURIComponent(escape(atob(b.replace(/\n/g,''))))}
+function enc(s){return btoa(unescape(encodeURIComponent(s)))}
+function load(){if(!ls('tok')){$('up').innerHTML='<p>Add your GitHub token in Settings.</p>';return}
+api('queue.json').then(function(f){Q=JSON.parse(dec(f.content));draw()}).catch(function(e){$('up').innerHTML='<p>Could not load: '+e.message+'</p>'})}
+function row(v){return '<div class="card item"><div><b>'+esc(v.title)+'</b><small>'+esc(v.platform||'YouTube')+' · '+esc(v.post_date)+'</small></div><span class="pill '+(v.posted?'ok':'')+'">'+(v.posted?'Published':'Scheduled')+'</span></div>'}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function draw(){var p=Q.filter(function(v){return v.posted}).length;
+$('n1').textContent=Q.length;$('n2').textContent=Q.length-p;$('n3').textContent=p;
+var up=Q.filter(function(v){return!v.posted});$('up').innerHTML=up.length?up.map(row).join(''):'<p>Nothing queued yet.</p>';
+$('ql').innerHTML=Q.length?Q.slice().reverse().map(row).join(''):'<p>Nothing queued yet.</p>'}
+function b64(file){return new Promise(function(ok,no){var r=new FileReader();r.onload=function(){ok(r.result.split(',')[1])};r.onerror=no;r.readAsDataURL(file)})}
+function put(name,file){return b64(file).then(function(c){return api(name,{method:'PUT',body:JSON.stringify({message:'Add '+name,content:c})})})}
+$('go').onclick=function(){var v=$('vf').files[0],t=$('tf').files[0],m=$('msg');
+if(!ls('tok')){m.textContent='Add your GitHub token in Settings first.';return}
+if(!v||!$('ti').value.trim()){m.textContent='Pick a video and enter a title.';return}
+var vn=Date.now()+'_'+v.name.replace(/[^\w.\-]/g,'_'),tn=t?Date.now()+'_'+t.name.replace(/[^\w.\-]/g,'_'):'';
+$('go').disabled=true;m.textContent='Uploading video...';
+put(vn,v).then(function(){if(t){m.textContent='Uploading thumbnail...';return put(tn,t)}})
+.then(function(){m.textContent='Updating queue...';return api('queue.json')})
+.then(function(f){var q=JSON.parse(dec(f.content));
+q.push({video_file:vn,thumbnail_file:tn,title:$('ti').value.trim(),description:$('de').value.trim(),
+tags:$('tg').value.split(',').map(function(x){return x.trim().replace(/^#/,'')}).filter(Boolean),mentions:[],post_date:$('dt').value,posted:false,platform:'YouTube'});
+return api('queue.json',{method:'PUT',body:JSON.stringify({message:'Queue: '+$('ti').value.trim(),content:enc(JSON.stringify(q,null,2)),sha:f.sha})})})
+.then(function(){m.textContent='Added. It posts on its date at the next 30-minute run.';$('ti').value='';$('de').value='';$('tg').value='';$('vf').value='';$('tf').value=''})
+.catch(function(e){m.textContent='Failed: '+e.message}).then(function(){$('go').disabled=false})};
+load();
+</script></body></html>
