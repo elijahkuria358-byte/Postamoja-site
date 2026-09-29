@@ -148,6 +148,7 @@ return '<div class="day"><b>'+esc(d)+'</b>'+byDate[d].map(function(v){return '<d
 function b64(file){return new Promise(function(ok,no){var r=new FileReader();r.onload=function(){ok(r.result.split(',')[1])};r.onerror=no;r.readAsDataURL(file)})}
 function put(name,file){return b64(file).then(function(c){return api(name,{method:'PUT',body:JSON.stringify({message:'Add '+name,content:c})})})}
 function withTags(desc,tags){return tags.length?desc+(desc?'\n\n':'')+tags.map(function(t){return '#'+t.replace(/\s+/g,'')}).join(' '):desc}
+function padTime(t){t=(t||'').trim();var m=t.match(/^(\d{1,2}):(\d{2})$/);if(!m)return t;return (m[1].length<2?'0'+m[1]:m[1])+':'+m[2]}
 $('go').onclick=function(){var v=$('vf').files[0],t=$('tf').files[0],m=$('msg');
 if(!ls('tok')){m.textContent='Add your GitHub token in Settings first.';return}
 if(!v||!$('ti').value.trim()){m.textContent='Pick a video and enter a title.';return}
@@ -167,7 +168,7 @@ if(!ls('tok')){m.textContent='Add your GitHub token in Settings first.';return}
 if(!files.length){m.textContent='Pick at least one video.';return}
 if(!$('dtA').value){m.textContent='Pick a start date.';return}
 var ppd=Math.max(1,parseInt($('ppd').value,10)||1);
-var times=$('tmA').value.split(',').map(function(x){return x.trim()}).filter(Boolean);
+var times=$('tmA').value.split(',').map(function(x){return padTime(x)}).filter(Boolean);
 if(!times.length)times=['09:00'];
 var tagsA=$('tgA').value.split(',').map(function(x){return x.trim().replace(/^#/,'')}).filter(Boolean);
 $('goA').disabled=true;var i=0;
