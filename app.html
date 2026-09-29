@@ -54,6 +54,17 @@ nav button.on{color:var(--g)}
 <h3>Title</h3><input id="ti" placeholder="Enter title...">
 <h3>Caption</h3><textarea id="de" rows="3" placeholder="Write your caption..."></textarea>
 <h3>Hashtags</h3><input id="tg" placeholder="comedy, kenya, content">
+<h3>Category</h3>
+<select id="cat">
+<option value="23">Comedy</option>
+<option value="24" selected>Entertainment</option>
+<option value="22">People &amp; Blogs</option>
+<option value="1">Film &amp; Animation</option>
+<option value="26">Howto &amp; Style</option>
+<option value="27">Education</option>
+<option value="25">News &amp; Politics</option>
+<option value="10">Music</option>
+</select>
 <h3>Thumbnail (optional)</h3><input type="file" id="tf" accept="image/*">
 <h3>Post date</h3><input type="date" id="dt">
 <h3>Post time</h3><input type="time" id="tm" value="09:00">
@@ -65,6 +76,17 @@ nav button.on{color:var(--g)}
 <div id="vlist"></div>
 <h3>Caption (used for all)</h3><textarea id="deA" rows="2" placeholder="Write your caption..."></textarea>
 <h3>Hashtags (used for all)</h3><input id="tgA" placeholder="comedy, kenya, content">
+<h3>Category (used for all)</h3>
+<select id="catA">
+<option value="23">Comedy</option>
+<option value="24" selected>Entertainment</option>
+<option value="22">People &amp; Blogs</option>
+<option value="1">Film &amp; Animation</option>
+<option value="26">Howto &amp; Style</option>
+<option value="27">Education</option>
+<option value="25">News &amp; Politics</option>
+<option value="10">Music</option>
+</select>
 <div class="row">
 <div><h3>Start date</h3><input type="date" id="dtA"></div>
 <div><h3>Posts per day</h3><input type="text" inputmode="numeric" id="ppd" value="1"></div>
@@ -125,6 +147,7 @@ $('cl').innerHTML=dates.length?dates.map(function(d){
 return '<div class="day"><b>'+esc(d)+'</b>'+byDate[d].map(function(v){return '<div class="item"><div><b>'+esc(v.title)+'</b><small>'+esc(v.platform||'YouTube')+(v.post_time?' · '+esc(v.post_time):'')+'</small></div><span class="pill '+(v.posted?'ok':'')+'">'+(v.posted?'Published':'Scheduled')+'</span></div>'}).join('')+'</div>'}).join(''):'<p>Nothing on the calendar yet.</p>'}
 function b64(file){return new Promise(function(ok,no){var r=new FileReader();r.onload=function(){ok(r.result.split(',')[1])};r.onerror=no;r.readAsDataURL(file)})}
 function put(name,file){return b64(file).then(function(c){return api(name,{method:'PUT',body:JSON.stringify({message:'Add '+name,content:c})})})}
+function withTags(desc,tags){return tags.length?desc+(desc?'\n\n':'')+tags.map(function(t){return '#'+t.replace(/\s+/g,'')}).join(' '):desc}
 $('go').onclick=function(){var v=$('vf').files[0],t=$('tf').files[0],m=$('msg');
 if(!ls('tok')){m.textContent='Add your GitHub token in Settings first.';return}
 if(!v||!$('ti').value.trim()){m.textContent='Pick a video and enter a title.';return}
@@ -133,8 +156,8 @@ $('go').disabled=true;m.textContent='Uploading video...';
 put(vn,v).then(function(){if(t){m.textContent='Uploading thumbnail...';return put(tn,t)}})
 .then(function(){m.textContent='Updating queue...';return api('queue.json')})
 .then(function(f){var q=JSON.parse(dec(f.content));
-q.push({video_file:vn,thumbnail_file:tn,title:$('ti').value.trim(),description:$('de').value.trim(),
-tags:$('tg').value.split(',').map(function(x){return x.trim().replace(/^#/,'')}).filter(Boolean),mentions:[],post_date:$('dt').value,post_time:$('tm').value||'09:00',posted:false,platform:'YouTube'});
+q.push({video_file:vn,thumbnail_file:tn,title:$('ti').value.trim(),description:withTags($('de').value.trim(),$('tg').value.split(',').map(function(x){return x.trim().replace(/^#/,'')}).filter(Boolean)),
+tags:$('tg').value.split(',').map(function(x){return x.trim().replace(/^#/,'')}).filter(Boolean),mentions:[],post_date:$('dt').value,post_time:$('tm').value||'09:00',category_id:$('cat').value,posted:false,platform:'YouTube'});
 return api('queue.json',{method:'PUT',body:JSON.stringify({message:'Queue: '+$('ti').value.trim(),content:enc(JSON.stringify(q,null,2)),sha:f.sha})})})
 .then(function(){m.textContent='Added. It posts on its date at the next 30-minute run.';$('ti').value='';$('de').value='';$('tg').value='';$('vf').value='';$('tf').value=''})
 .catch(function(e){m.textContent='Failed: '+e.message}).then(function(){$('go').disabled=false})};
@@ -152,8 +175,8 @@ function next(){
 if(i>=files.length){m.textContent='Fetching queue...';return api('queue.json').then(function(f){var q=JSON.parse(dec(f.content));
 files.forEach(function(file,idx){var d=new Date($('dtA').value+'T00:00:00');d.setDate(d.getDate()+Math.floor(idx/ppd));
 var slot=idx%ppd,t=times[slot%times.length];
-q.push({video_file:file._vn,thumbnail_file:'',title:file.name.replace(/\.[^.]+$/,''),description:$('deA').value.trim(),
-tags:tagsA,mentions:[],post_date:d.toISOString().slice(0,10),post_time:t,posted:false,platform:'YouTube'})});
+q.push({video_file:file._vn,thumbnail_file:'',title:file.name.replace(/\.[^.]+$/,''),description:withTags($('deA').value.trim(),tagsA),
+tags:tagsA,mentions:[],post_date:d.toISOString().slice(0,10),post_time:t,category_id:$('catA').value,posted:false,platform:'YouTube'})});
 return api('queue.json',{method:'PUT',body:JSON.stringify({message:'Auto-schedule '+files.length+' videos',content:enc(JSON.stringify(q,null,2)),sha:f.sha})})})
 .then(function(){m.textContent='Scheduled '+files.length+' videos across '+Math.ceil(files.length/ppd)+' day(s).';$('vfm').value='';$('vlist').innerHTML='';$('deA').value='';$('tgA').value=''})
 .catch(function(e){m.textContent='Failed: '+e.message}).then(function(){$('goA').disabled=false})}
