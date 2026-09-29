@@ -56,6 +56,7 @@ nav button.on{color:var(--g)}
 <h3>Hashtags</h3><input id="tg" placeholder="comedy, kenya, content">
 <h3>Thumbnail (optional)</h3><input type="file" id="tf" accept="image/*">
 <h3>Post date</h3><input type="date" id="dt">
+<h3>Post time</h3><input type="time" id="tm" value="09:00">
 <button class="btn" id="go">Add to queue</button>
 </div>
 
@@ -68,6 +69,7 @@ nav button.on{color:var(--g)}
 <div><h3>Start date</h3><input type="date" id="dtA"></div>
 <div><h3>Posts per day</h3><input type="text" inputmode="numeric" id="ppd" value="1"></div>
 </div>
+<h3>Post times (one per post-per-day, comma separated)</h3><input id="tmA" value="09:00">
 <button class="btn" id="goA">Generate schedule</button>
 </div>
 <div id="msg"></div>
@@ -109,7 +111,7 @@ function dec(b){return decodeURIComponent(escape(atob(b.replace(/\n/g,''))))}
 function enc(s){return btoa(unescape(encodeURIComponent(s)))}
 function load(){if(!ls('tok')){$('up').innerHTML='<p>Add your GitHub token in Settings.</p>';return}
 api('queue.json').then(function(f){Q=JSON.parse(dec(f.content));draw()}).catch(function(e){$('up').innerHTML='<p>Could not load: '+e.message+'</p>'})}
-function row(v){return '<div class="card item"><div><b>'+esc(v.title)+'</b><small>'+esc(v.platform||'YouTube')+' · '+esc(v.post_date)+'</small></div><span class="pill '+(v.posted?'ok':'')+'">'+(v.posted?'Published':'Scheduled')+'</span></div>'}
+function row(v){return '<div class="card item"><div><b>'+esc(v.title)+'</b><small>'+esc(v.platform||'YouTube')+' · '+esc(v.post_date)+(v.post_time?' · '+esc(v.post_time):'')+'</small></div><span class="pill '+(v.posted?'ok':'')+'">'+(v.posted?'Published':'Scheduled')+'</span></div>'}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function draw(){var p=Q.filter(function(v){return v.posted}).length;
 $('n1').textContent=Q.length;$('n2').textContent=Q.length-p;$('n3').textContent=p;
@@ -120,7 +122,7 @@ function drawCal(){if(!$('cl'))return;
 var byDate={};Q.forEach(function(v){(byDate[v.post_date]=byDate[v.post_date]||[]).push(v)});
 var dates=Object.keys(byDate).sort();
 $('cl').innerHTML=dates.length?dates.map(function(d){
-return '<div class="day"><b>'+esc(d)+'</b>'+byDate[d].map(function(v){return '<div class="item"><div><b>'+esc(v.title)+'</b><small>'+esc(v.platform||'YouTube')+'</small></div><span class="pill '+(v.posted?'ok':'')+'">'+(v.posted?'Published':'Scheduled')+'</span></div>'}).join('')+'</div>'}).join(''):'<p>Nothing on the calendar yet.</p>'}
+return '<div class="day"><b>'+esc(d)+'</b>'+byDate[d].map(function(v){return '<div class="item"><div><b>'+esc(v.title)+'</b><small>'+esc(v.platform||'YouTube')+(v.post_time?' · '+esc(v.post_time):'')+'</small></div><span class="pill '+(v.posted?'ok':'')+'">'+(v.posted?'Published':'Scheduled')+'</span></div>'}).join('')+'</div>'}).join(''):'<p>Nothing on the calendar yet.</p>'}
 function b64(file){return new Promise(function(ok,no){var r=new FileReader();r.onload=function(){ok(r.result.split(',')[1])};r.onerror=no;r.readAsDataURL(file)})}
 function put(name,file){return b64(file).then(function(c){return api(name,{method:'PUT',body:JSON.stringify({message:'Add '+name,content:c})})})}
 $('go').onclick=function(){var v=$('vf').files[0],t=$('tf').files[0],m=$('msg');
@@ -132,7 +134,7 @@ put(vn,v).then(function(){if(t){m.textContent='Uploading thumbnail...';return pu
 .then(function(){m.textContent='Updating queue...';return api('queue.json')})
 .then(function(f){var q=JSON.parse(dec(f.content));
 q.push({video_file:vn,thumbnail_file:tn,title:$('ti').value.trim(),description:$('de').value.trim(),
-tags:$('tg').value.split(',').map(function(x){return x.trim().replace(/^#/,'')}).filter(Boolean),mentions:[],post_date:$('dt').value,posted:false,platform:'YouTube'});
+tags:$('tg').value.split(',').map(function(x){return x.trim().replace(/^#/,'')}).filter(Boolean),mentions:[],post_date:$('dt').value,post_time:$('tm').value||'09:00',posted:false,platform:'YouTube'});
 return api('queue.json',{method:'PUT',body:JSON.stringify({message:'Queue: '+$('ti').value.trim(),content:enc(JSON.stringify(q,null,2)),sha:f.sha})})})
 .then(function(){m.textContent='Added. It posts on its date at the next 30-minute run.';$('ti').value='';$('de').value='';$('tg').value='';$('vf').value='';$('tf').value=''})
 .catch(function(e){m.textContent='Failed: '+e.message}).then(function(){$('go').disabled=false})};
@@ -142,13 +144,16 @@ if(!ls('tok')){m.textContent='Add your GitHub token in Settings first.';return}
 if(!files.length){m.textContent='Pick at least one video.';return}
 if(!$('dtA').value){m.textContent='Pick a start date.';return}
 var ppd=Math.max(1,parseInt($('ppd').value,10)||1);
+var times=$('tmA').value.split(',').map(function(x){return x.trim()}).filter(Boolean);
+if(!times.length)times=['09:00'];
 var tagsA=$('tgA').value.split(',').map(function(x){return x.trim().replace(/^#/,'')}).filter(Boolean);
 $('goA').disabled=true;var i=0;
 function next(){
 if(i>=files.length){m.textContent='Fetching queue...';return api('queue.json').then(function(f){var q=JSON.parse(dec(f.content));
 files.forEach(function(file,idx){var d=new Date($('dtA').value+'T00:00:00');d.setDate(d.getDate()+Math.floor(idx/ppd));
+var slot=idx%ppd,t=times[slot%times.length];
 q.push({video_file:file._vn,thumbnail_file:'',title:file.name.replace(/\.[^.]+$/,''),description:$('deA').value.trim(),
-tags:tagsA,mentions:[],post_date:d.toISOString().slice(0,10),posted:false,platform:'YouTube'})});
+tags:tagsA,mentions:[],post_date:d.toISOString().slice(0,10),post_time:t,posted:false,platform:'YouTube'})});
 return api('queue.json',{method:'PUT',body:JSON.stringify({message:'Auto-schedule '+files.length+' videos',content:enc(JSON.stringify(q,null,2)),sha:f.sha})})})
 .then(function(){m.textContent='Scheduled '+files.length+' videos across '+Math.ceil(files.length/ppd)+' day(s).';$('vfm').value='';$('vlist').innerHTML='';$('deA').value='';$('tgA').value=''})
 .catch(function(e){m.textContent='Failed: '+e.message}).then(function(){$('goA').disabled=false})}
