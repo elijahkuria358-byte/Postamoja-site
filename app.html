@@ -27,6 +27,12 @@ nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px
 nav div{display:flex;max-width:480px;margin:0 auto}
 nav button{flex:1;background:none;border:0;padding:14px 4px;color:var(--mute);font:600 12px system-ui}
 nav button.on{color:var(--g)}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:14px}
+.seg button{flex:1;padding:9px;border:0;background:none;color:var(--mute);font:600 13px system-ui;border-radius:9px}
+.seg button.on{background:var(--g);color:var(--on)}
+.day{border:1px solid var(--line);border-radius:14px;margin-bottom:8px;overflow:hidden}
+.day>b{display:block;padding:10px 14px;background:var(--card);font-size:13px;color:var(--mute)}
+.day .item{padding:10px 14px;border-top:1px solid var(--line)}
 </style></head><body><div class="app">
 
 <section class="s on" id="home">
@@ -41,16 +47,35 @@ nav button.on{color:var(--g)}
 
 <section class="s" id="add">
 <h2>New post</h2>
+<div class="seg"><button class="on" data-mode="one">Single post</button><button data-mode="auto">Auto-schedule</button></div>
+
+<div id="modeOne">
 <h3>Video (up to about 25 MB)</h3><input type="file" id="vf" accept="video/*">
 <h3>Title</h3><input id="ti" placeholder="Enter title...">
 <h3>Caption</h3><textarea id="de" rows="3" placeholder="Write your caption..."></textarea>
 <h3>Hashtags</h3><input id="tg" placeholder="comedy, kenya, content">
 <h3>Thumbnail (optional)</h3><input type="file" id="tf" accept="image/*">
 <h3>Post date</h3><input type="date" id="dt">
-<button class="btn" id="go">Add to queue</button><div id="msg"></div>
+<button class="btn" id="go">Add to queue</button>
+</div>
+
+<div id="modeAuto" style="display:none">
+<h3>Videos (pick several)</h3><input type="file" id="vfm" accept="video/*" multiple>
+<div id="vlist"></div>
+<h3>Caption (used for all)</h3><textarea id="deA" rows="2" placeholder="Write your caption..."></textarea>
+<h3>Hashtags (used for all)</h3><input id="tgA" placeholder="comedy, kenya, content">
+<div class="row">
+<div><h3>Start date</h3><input type="date" id="dtA"></div>
+<div><h3>Posts per day</h3><input type="text" inputmode="numeric" id="ppd" value="1"></div>
+</div>
+<button class="btn" id="goA">Generate schedule</button>
+</div>
+<div id="msg"></div>
 </section>
 
 <section class="s" id="queue"><h2>Scheduled posts</h2><div id="ql"></div></section>
+
+<section class="s" id="cal"><h2>Content calendar</h2><div id="cl"></div></section>
 
 <section class="s" id="set">
 <h2>Settings</h2>
@@ -62,13 +87,17 @@ nav button.on{color:var(--g)}
 </section>
 </div>
 <nav><div>
-<button data-go="home">Home</button><button data-go="add">Add</button><button data-go="queue">Queue</button><button data-go="set">Settings</button></div></nav>
+<button data-go="home">Home</button><button data-go="add">Add</button><button data-go="cal">Calendar</button><button data-go="queue">Queue</button><button data-go="set">Settings</button></div></nav>
 <script>
 var $=function(i){return document.getElementById(i)},Q=[];
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k)||'';localStorage.setItem(k,v)}catch(e){return ''}}
 function go(id){document.querySelectorAll('.s').forEach(function(s){s.classList.toggle('on',s.id===id)});
 document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('on',b.dataset.go===id)});
-if(id==='home'||id==='queue')load()}
+if(id==='home'||id==='queue'||id==='cal')load()}
+document.querySelectorAll('.seg button').forEach(function(b){b.onclick=function(){
+document.querySelectorAll('.seg button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');
+$('modeOne').style.display=b.dataset.mode==='one'?'':'none';$('modeAuto').style.display=b.dataset.mode==='auto'?'':'none'}});
+$('vfm').onchange=function(){$('vlist').innerHTML=Array.from($('vfm').files).map(function(f){return '<div class="card" style="padding:10px 14px">'+esc(f.name)+'</div>'}).join('')};
 document.addEventListener('click',function(e){var t=e.target.closest('[data-go]');if(t)go(t.dataset.go)});
 var h=new Date().getHours();$('greet').textContent=h<12?'Good morning 👋':h<17?'Good afternoon 👋':'Good evening 👋';
 $('dt').value=new Date().toISOString().slice(0,10);
@@ -85,7 +114,13 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
 function draw(){var p=Q.filter(function(v){return v.posted}).length;
 $('n1').textContent=Q.length;$('n2').textContent=Q.length-p;$('n3').textContent=p;
 var up=Q.filter(function(v){return!v.posted});$('up').innerHTML=up.length?up.map(row).join(''):'<p>Nothing queued yet.</p>';
-$('ql').innerHTML=Q.length?Q.slice().reverse().map(row).join(''):'<p>Nothing queued yet.</p>'}
+$('ql').innerHTML=Q.length?Q.slice().reverse().map(row).join(''):'<p>Nothing queued yet.</p>';
+drawCal()}
+function drawCal(){if(!$('cl'))return;
+var byDate={};Q.forEach(function(v){(byDate[v.post_date]=byDate[v.post_date]||[]).push(v)});
+var dates=Object.keys(byDate).sort();
+$('cl').innerHTML=dates.length?dates.map(function(d){
+return '<div class="day"><b>'+esc(d)+'</b>'+byDate[d].map(function(v){return '<div class="item"><div><b>'+esc(v.title)+'</b><small>'+esc(v.platform||'YouTube')+'</small></div><span class="pill '+(v.posted?'ok':'')+'">'+(v.posted?'Published':'Scheduled')+'</span></div>'}).join('')+'</div>'}).join(''):'<p>Nothing on the calendar yet.</p>'}
 function b64(file){return new Promise(function(ok,no){var r=new FileReader();r.onload=function(){ok(r.result.split(',')[1])};r.onerror=no;r.readAsDataURL(file)})}
 function put(name,file){return b64(file).then(function(c){return api(name,{method:'PUT',body:JSON.stringify({message:'Add '+name,content:c})})})}
 $('go').onclick=function(){var v=$('vf').files[0],t=$('tf').files[0],m=$('msg');
@@ -101,5 +136,25 @@ tags:$('tg').value.split(',').map(function(x){return x.trim().replace(/^#/,'')})
 return api('queue.json',{method:'PUT',body:JSON.stringify({message:'Queue: '+$('ti').value.trim(),content:enc(JSON.stringify(q,null,2)),sha:f.sha})})})
 .then(function(){m.textContent='Added. It posts on its date at the next 30-minute run.';$('ti').value='';$('de').value='';$('tg').value='';$('vf').value='';$('tf').value=''})
 .catch(function(e){m.textContent='Failed: '+e.message}).then(function(){$('go').disabled=false})};
+
+$('goA').onclick=function(){var files=Array.from($('vfm').files),m=$('msg');
+if(!ls('tok')){m.textContent='Add your GitHub token in Settings first.';return}
+if(!files.length){m.textContent='Pick at least one video.';return}
+if(!$('dtA').value){m.textContent='Pick a start date.';return}
+var ppd=Math.max(1,parseInt($('ppd').value,10)||1);
+var tagsA=$('tgA').value.split(',').map(function(x){return x.trim().replace(/^#/,'')}).filter(Boolean);
+$('goA').disabled=true;var i=0;
+function next(){
+if(i>=files.length){m.textContent='Fetching queue...';return api('queue.json').then(function(f){var q=JSON.parse(dec(f.content));
+files.forEach(function(file,idx){var d=new Date($('dtA').value+'T00:00:00');d.setDate(d.getDate()+Math.floor(idx/ppd));
+q.push({video_file:file._vn,thumbnail_file:'',title:file.name.replace(/\.[^.]+$/,''),description:$('deA').value.trim(),
+tags:tagsA,mentions:[],post_date:d.toISOString().slice(0,10),posted:false,platform:'YouTube'})});
+return api('queue.json',{method:'PUT',body:JSON.stringify({message:'Auto-schedule '+files.length+' videos',content:enc(JSON.stringify(q,null,2)),sha:f.sha})})})
+.then(function(){m.textContent='Scheduled '+files.length+' videos across '+Math.ceil(files.length/ppd)+' day(s).';$('vfm').value='';$('vlist').innerHTML='';$('deA').value='';$('tgA').value=''})
+.catch(function(e){m.textContent='Failed: '+e.message}).then(function(){$('goA').disabled=false})}
+var file=files[i],vn=Date.now()+'_'+i+'_'+file.name.replace(/[^\w.\-]/g,'_');file._vn=vn;
+m.textContent='Uploading '+(i+1)+' of '+files.length+'...';
+put(vn,file).then(function(){i++;next()}).catch(function(e){m.textContent='Failed: '+e.message;$('goA').disabled=false})}
+next()};
 load();
 </script></body></html>
